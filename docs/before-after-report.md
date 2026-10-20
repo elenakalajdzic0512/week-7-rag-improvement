@@ -2,6 +2,8 @@
 
 M1 je implementiran i provjeren 20. oktobra 2026. Svi testovi prolaze **30/30**, a fiksni eval je poboljšan sa **6/12 na 9/12**. E04 i E09 sada citiraju cijelu činjenicu o roku zamjene laptopa. Nema regresija prolaz → pad, ali E06 uprkos prolazu sadrži i zastarjelo pravilo. Elena je pregledala završne nalaze; komentar drugog para još nije dokumentovan, a demonstrator se dogovara.
 
+Naknadni **M5** je zaseban dodatni eksperiment na grani `feat/current-only-filter`, poređen sa stanjem poslije M1. Njegovi rezultati su u odjeljku „Dodatni eksperiment — M5: filtriranje važećih izvora” niže u ovom izvještaju; ne pripadaju obaveznoj M1 promjeni. Predaja obaveznog minimuma tutoru nije potvrđena.
+
 ## Cilj i početno stanje
 
 Cilj weekly assignmenta je izmjeriti početni RAG sistem na fiksnom skupu, dokumentovati propuste, izvesti jednu kontrolisanu promjenu i uporediti stanje prije i poslije. Početni kod je sačuvan u commitu `c233b11f7a7faa8986236732de54be9453909d44`. Sistem radi lokalno nad deset dokumenata priručnika. Početna konfiguracija koristi chunkovanje po karakterima (`CHUNK_SIZE=140`, `CHUNK_OVERLAP=30`), `TOP_K=2` i ne filtrira zastarjele verzije. Potpuna podešavanja su u [početnim nalazima](baseline-findings.md) i izvornom [before rezultatu](../results/before.json).
@@ -213,6 +215,79 @@ Očekivani pravac koristi je bolji recall za parafraze, manje nevažnih citata i
 
 U ovoj dopuni izmijenjen je samo ovaj izvještaj i dodat `docs/spec.md`. Izvršni kod, zavisnosti, početni i završni rezultati i originalni eval skup nisu mijenjani. Literatura je provjerena putem primarnih izvora; prijedlog i specifikaciju pripremio je Codex na Isidorin zahtjev. Ne predstavlja dodatni ljudski ili partnerski pregled.
 
+## Dodatni eksperiment — M5: filtriranje važećih izvora
+
+Ovaj odjeljak opisuje **zaseban dodatni eksperiment**, a ne novu fazu obavezne M1 intervencije. M1 se mjerio kao `results/before.json` → `results/after.json`; M5 se mjeri kao postojeći `results/after.json` → novi `results/current-only.json`. Polazni commit grane je `f48eeefd4d7df158b925a142a7d13d28b0b75cf9`. [M5 specifikacija](current-only-spec.md) je sačuvana prije implementacije u commitu `35d3a825c68ae3b4931de93d8495af3d6e85c3f4`, a urednička promjena odredišta ovog izvještaja u commitu `c5c37af`. Pregledana implementacija i ciljani testovi su u commitu **`90009e927a2e9b631dbdda66ca41a94bf17d3094`**.
+
+### Problem, intervencija i okruženje
+
+Poslije M1 E06 prolazi staru evaluaciju, ali istovremeno citira važećih **3 dana** iz 2026. i zastarjelih **2 dana** iz 2024. M5 u postojećoj `searchable_chunks` isključuje svaki chunk čiji status nije tačno `current`, **prije skoringa i izbora top 2**, i postavlja samo `CURRENT_ONLY=True`. `CURRENT_ONLY=False` zadržava prethodno ponašanje. M1 chunkovanje, korpus, leksički skor, ostale postavke, formiranje odgovora, izvorni eval skup i metrike nisu mijenjani. Nisu dodati profili, modeli, novi CLI režim ni zavisnosti.
+
+Korišćen je projektni interpreter `/Users/ladylazarus/Desktop/rag-week-7-weak-checkpoint/.venv/bin/python`, **Python 3.12.14**, uz **pytest 8.3.3**. Iz korijena projekta izvršeno je:
+
+```bash
+.venv/bin/python -m pytest
+.venv/bin/python -m src.eval_runner --out results/current-only.json
+.venv/bin/python -m src.eval_compare results/after.json results/current-only.json
+.venv/bin/python -m src.cli --question "How many days per week can I work remotely?" --show-retrieved
+```
+
+Prije svakog upisa potvrđeno je da nova izlazna putanja ne postoji. **36/36 testova je prošlo, status 0**: svih 30 ranijih i šest novih ciljanih testova. Puni izlaz sa komandom, verzijama i statusom je u [zapisu testova](current-only-test-results.txt). Eval i poređenje završili su statusom 0; puni izlaz poređenja je u [novom poređenju](../results/current-only-vs-m1.txt). Komande i puni izlazi CLI provjera E02, E04, E06 i E09 su u [CLI zapisu](current-only-cli-checks.txt).
+
+Novi [rezultat](../results/current-only.json) ima isti `eval_set_sha256` kao M1: `afe46db1e75a0b85bb5c9a93b6763e3b96e5cd7b289e12da6d2671e4d8650064`. Jedina razlika u sačuvanoj konfiguraciji je **`CURRENT_ONLY: False → True`**. Izvorni `before.json`, M1 `after.json` i `comparison.txt` zadržali su iste bajtove.
+
+### M1 naspram M1+M5
+
+| Metrika | Poslije M1 | Poslije M1+M5 | Promjena |
+| --- | ---: | ---: | ---: |
+| Prošla pitanja | 9/12 | 9/12 | 0 |
+| Tačnost odluke odgovor/odbijanje | 0.8333 | 0.8333 | 0 |
+| Pogodak očekivanog dokumenta | 0.8889 | 0.8889 | 0 |
+| Srednja preciznost citata po staroj metrici | 0.5455 | 0.5909 | +0.0454 |
+
+**Popravljena pitanja po staroj metrici:** nema. **Regresije prolaz → pad:** nema. Svih 12 pitanja zadržalo je raniji status prolaza; E05, E10 i E11 i dalje padaju. E06 je već prolazio nakon M1, pa njegovo sadržinsko poboljšanje ne povećava broj prolaza. Srednja preciznost citata raste zbog E06 (`0.50 → 1.00`); to je metrika zasnovana na očekivanom dokumentu, a ne dokaz da je svaki citat podjednako informativan.
+
+**Izbor citata promijenjen je samo za dva pitanja:**
+
+| ID | M1 citati | M1+M5 citati | Sadržinski nalaz |
+| --- | --- | --- | --- |
+| E02 | `hb-05-chunk-0`, `hb-02-chunk-1` (`superseded`) | `hb-05-chunk-0`, `hb-03-chunk-2` (`current`) | Tačan rok promjene lozinke od 90 dana ostaje u prvom citatu. Drugi citat je i dalje nerelevantan tekst o pomjeranju dana rada na daljinu; `CitPrec` ostaje 0.50. |
+| E06 | `hb-03-chunk-0` (`current`), `hb-02-chunk-0` (`superseded`) | `hb-03-chunk-0`, `hb-03-chunk-2` (oba `current`) | Važeće pravilo od 3 dana ostaje. Kontradiktorno pravilo od 2 dana nestaje; drugi citat govori o pomjeranju dana u sedmici, ne dokazuje broj 3. |
+
+Ostalim pitanjima nisu promijenjeni ni status prolaza ni ID-jevi citata. **E04** i dalje citira cjelovitu rečenicu sa „5 business days”. **E09** i dalje citira i rok „5 business days” i mjesto zahtjeva „IT portal under Hardware”; oba su važeći izvor `hb-01` iz 2026.
+
+### Ručna provjera E06 prije i poslije
+
+**Poslije M1**, odgovor je sadržao oba pravila:
+
+```text
+[hb-03-chunk-0] Remote work: employees can work remotely up to 3 days per week.
+[hb-02-chunk-0] Remote work: employees can work remotely up to 2 days per week. Remote days per week are agreed with your team lead.
+```
+
+Prvi citat je verzija **2026, current**, a drugi **2024, superseded**. Taj stvarni odgovor je sačuvan u [M1 CLI provjeri](after-cli-checks.txt).
+
+**Poslije M1+M5**, odgovor je:
+
+```text
+[hb-03-chunk-0] Remote work: employees can work remotely up to 3 days per week.
+[hb-03-chunk-2] Remote work days can be moved within same week.
+```
+
+Oba citata su verzija **2026, current**; nema `superseded` citata ni tvrdnje o 2 dana. Prvi citat podržava odgovor o 3 dana, dok je drugi dodatni kontekst, ne samostalna potvrda broja dana. Puni odgovor, metapodaci i retrieval skorovi su u [M5 CLI provjeri](current-only-cli-checks.txt). Sama oznaka `current` ne dokazuje relevantnost: E02 i dalje ima sporedni nerelevantan citat.
+
+### Kriterijumi, ograničenja i zaključak
+
+| Unaprijed zadati kriterijum | Ishod |
+| --- | --- |
+| E06 navodi važeća 3 dana, bez zastarjelog citata i tvrdnje o 2 dana | **Ispunjen** u sačuvanoj CLI provjeri. |
+| Nema prelaza prolaz → pad u odnosu na M1 | **Ispunjen** na svih 12 fiksnih pitanja. |
+| E04/E09 zadržavaju „5 business days”; E09 i IT portal / Hardware | **Ispunjen** u eval rezultatu i ručnoj CLI provjeri. |
+| Prijaviti promjene citata i sadržinska pogoršanja, čak i bez promjene prolaza | **Urađeno:** E02 i E06 su jedine promjene citata; E02 zadržava nerelevantan drugi citat. Druga pogoršanja nisu uočena na pregledanim odgovorima. |
+| Odvojeno ocijeniti kontradikciju i očuvanje odgovora | **Urađeno:** kontradikcija E06 je uklonjena, a stari prolazi su očuvani; ukupan broj prolaza ostaje 9/12. |
+
+Hipoteza je **podržana na ovom fiksnom skupu** za E06 i očuvanje ranijih prolaza. To nije dokaz opšteg poboljšanja: filter je globalan, ne razumije istorijsku namjeru i na istorijsko pitanje može vratiti važeće pravilo. Status `current` ne garantuje relevantnost ili potpunost, što pokazuje E02. E05, E10 i E11 nisu riješeni. Poznatih 12 pitanja služe kao regresiona provjera, ne kao neviđeni test generalizacije. Nije dodata druga intervencija radi popravljanja skora. Predaja obaveznog M1 minimuma tutoru i dalje nije potvrđena; M5 ostaje jasno odvojeni dodatni rad.
+
 ## Pregled drugog para
 
 Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. Elena je obavila interni pregled Isidorinog rada uz pomoć AI asistenata; to nije obavezni pregled drugog para. Komentar drugog para i odgovor na njega još nisu dokumentovani.
@@ -230,5 +305,7 @@ Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. 
 Pri pregledu koristila sam ChatGPT i Codex kao pomoć u analizi i tehničkoj provjeri. Codex je izvršio ponovno pokretanje testova i evaluacije, a ja sam pregledala nalaze i na osnovu njih procijenila rezultat. Naknadna tehnička revizija zabilježena je u razgovoru; zaseban zapis te revizije nije sačuvan u repozitorijumu.
 
 **Korišćenje AI-ja u ovoj fazi:** Codex je na Isidorin zahtjev implementirao funkciju i promjenu strategije, dodao ciljane testove, pripremio lokalno okruženje, izvršio testove, eval i CLI provjere, provjerio otiske, sačuvao dokaze, dopunio ovaj izvještaj i napravio Git commit implementacije. Kod i rezultati nisu predstavljeni kao ručno napisani ili nezavisno pregledani od strane druge osobe. Završna dokumentacija i dokazi čuvaju se u zasebnom commitu sa opisom rezultata.
+
+**M5 doprinos i korišćenje AI-ja:** Elena je izabrala current-only filter i vodila pripremu zasebnog eksperimenta uz AI asistente. Codex je implementirao M5, dodao ciljane testove, izvršio komande i dokumentovao izmjerene nalaze. Elenin lični pregled novih M5 rezultata nije dokumentovan; ovaj tehnički zapis ga ne predstavlja kao obavljen. Isidorin doprinos završenom M1 ostaje kako je naveden iznad.
 
 **Demonstrator:** Dogovara se.
