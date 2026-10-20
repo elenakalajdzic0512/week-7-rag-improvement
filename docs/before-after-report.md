@@ -306,6 +306,14 @@ Pri pregledu koristila sam ChatGPT i Codex kao pomoć u analizi i tehničkoj pro
 
 **Korišćenje AI-ja u ovoj fazi:** Codex je na Isidorin zahtjev implementirao funkciju i promjenu strategije, dodao ciljane testove, pripremio lokalno okruženje, izvršio testove, eval i CLI provjere, provjerio otiske, sačuvao dokaze, dopunio ovaj izvještaj i napravio Git commit implementacije. Kod i rezultati nisu predstavljeni kao ručno napisani ili nezavisno pregledani od strane druge osobe. Završna dokumentacija i dokazi čuvaju se u zasebnom commitu sa opisom rezultata.
 
-**M5 doprinos i korišćenje AI-ja:** Elena je izabrala current-only filter i vodila pripremu zasebnog eksperimenta uz AI asistente. Codex je implementirao M5, dodao ciljane testove, izvršio komande i dokumentovao izmjerene nalaze. Elenin lični pregled novih M5 rezultata nije dokumentovan; ovaj tehnički zapis ga ne predstavlja kao obavljen. Isidorin doprinos završenom M1 ostaje kako je naveden iznad.
+**M5 doprinos i korišćenje AI-ja:** Elena je izabrala current-only filter i vodila pripremu zasebnog eksperimenta uz AI asistente. Codex je implementirao M5, dodao ciljane testove, izvršio komande i dokumentovao izmjerene nalaze.
+
+Nakon implementacije pregledala sam M5 rezultate, poređenje sa stanjem poslije M1, testni zapis, CLI provjere i nalaze pregleda koda i testova. Zaključila sam da je promjena ostala u okviru specifikacije: uveden je globalni filter važećih izvora prije skoringa, uz promjenu samo postavke CURRENT_ONLY. Sačuvani testni zapis pokazuje 36/36 prolaznih testova. Eval ostaje na 9/12, bez regresija prolaz → pad, a izbor citata promijenjen je samo za E02 i E06.
+
+Za E06 je uklonjena kontradikcija: odgovor zadržava važeće pravilo o najviše 3 dana rada na daljinu i više ne citira zastarjelo pravilo od 2 dana. E04 i E09 zadržavaju rok od 5 radnih dana, a E09 i mjesto podnošenja zahtjeva IT portal / Hardware. Srednja preciznost citata po postojećoj metrici raste sa 0,5455 na 0,5909. Ipak, ta metrika provjerava porijeklo citata po dokumentu, a ne potpunu podršku odgovoru: E02 i dalje ima nerelevantan drugi citat, dok je drugi citat E06 dodatni kontekst, a ne nezavisna potvrda broja dana.
+
+Na osnovu pregleda zaključila sam da je hipoteza M5 podržana na ovom fiksnom skupu: konkretna kontradikcija je uklonjena, uz očuvanje ranijih prolaza. To nije dokaz opšte ispravnosti sistema. E05, E10 i E11 ostaju neuspješni, a globalni filter ne razumije istorijsku namjeru i može ponuditi važeće pravilo na pitanje o prošlosti.
+
+Pregled sam obavila uz pomoć ChatGPT-a i Codexa. Codex je izvršio implementaciju, testove, eval i CLI komande; pregledala sam dostavljene rezultate i nalaze i na osnovu njih donijela navedene zaključke. Naknadni pregled preko GitHub priključka obuhvatio je kod, testove i sačuvane dokaze, bez novog izvršavanja testova.
 
 **Demonstrator:** Dogovara se.
