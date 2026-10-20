@@ -1,6 +1,6 @@
 # Week 7 — zajednički izvještaj prije/poslije
 
-M1 je implementiran i provjeren 20. oktobra 2026. Svi testovi prolaze **30/30**, a fiksni eval je poboljšan sa **6/12 na 9/12**. E04 i E09 sada citiraju cijelu činjenicu o roku zamjene laptopa. Nema regresija prolaz → pad, ali E06 uprkos prolazu sadrži i zastarjelo pravilo. Pregled je poslat Eleni prema izjavi Isidore; povratni komentar i demonstrator još nisu potvrđeni.
+M1 je implementiran i provjeren 20. oktobra 2026. Svi testovi prolaze **30/30**, a fiksni eval je poboljšan sa **6/12 na 9/12**. E04 i E09 sada citiraju cijelu činjenicu o roku zamjene laptopa. Nema regresija prolaz → pad, ali E06 uprkos prolazu sadrži i zastarjelo pravilo. Elena je pregledala završne nalaze; komentar drugog para još nije dokumentovan, a demonstrator se dogovara.
 
 ## Cilj i početno stanje
 
@@ -215,7 +215,7 @@ U ovoj dopuni izmijenjen je samo ovaj izvještaj i dodat `docs/spec.md`. Izvršn
 
 ## Pregled drugog para
 
-Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. Elenin odgovor još nije dostavljen u ovom razgovoru, pa komentar i odgovor na komentar nisu izmišljeni. Ovaj interni pregled ne potvrđuje da je obavljen i traženi pregled drugog para.
+Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. Elena je obavila interni pregled Isidorinog rada uz pomoć AI asistenata; to nije obavezni pregled drugog para. Komentar drugog para i odgovor na njega još nisu dokumentovani.
 
 **Status pregleda drugog para:** čeka stvarni komentar. Ime para, komentar i postupanje po njemu treba dopisati kada budu dostupni.
 
@@ -225,6 +225,10 @@ Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. 
 
 **Isidora Popović:** prema svojoj izjavi pročitala je specifikaciju i proslijedila je Codexu za implementaciju; nakon toga ponovila je evaluaciju sistema i poslala rezultate Eleni na pregled.
 
-**Korišćenje AI-ja u ovoj fazi:** Codex je na Isidorin zahtjev implementirao funkciju i promjenu strategije, dodao ciljane testove, pripremio lokalno okruženje, izvršio testove, eval i CLI provjere, provjerio otiske, sačuvao dokaze, dopunio ovaj izvještaj i napravio Git commit implementacije. Kod i rezultati nisu predstavljeni kao ručno napisani ili nezavisno pregledani od strane druge osobe; povratni pregled još nije potvrđen. Završna dokumentacija i dokazi čuvaju se u zasebnom commitu sa opisom rezultata.
+**Elenin završni pregled:** Nakon Isidorine implementacije pregledala sam njene izmjene, rezultate testova i evaluacije, sačuvane CLI provjere i dopunjenu dokumentaciju. Zaključila sam da implementacija odgovara prethodno napisanoj specifikaciji i da je zadržan obim jedne promjene — M1 chunkovanja po rečenicama. Rezultati pokazuju napredak sa 6/12 na 9/12 prolaza, bez regresija prolaz → pad, uz svih 30 prolaznih testova. Za ciljana pitanja E04 i E09 citati sada sadrže traženu činjenicu, što podržava početnu hipotezu. Izdvojila sam i ograničenje E06: iako pitanje prolazi evaluaciju, odgovor citira i važeće i zastarjelo pravilo, pa prolaz metrike ne znači potpuno ispravan odgovor. Na osnovu pregleda usmjerila sam završne ispravke dokumentacije.
+
+Pri pregledu koristila sam ChatGPT i Codex kao pomoć u analizi i tehničkoj provjeri. Codex je izvršio ponovno pokretanje testova i evaluacije, a ja sam pregledala nalaze i na osnovu njih procijenila rezultat. Naknadna tehnička revizija zabilježena je u razgovoru; zaseban zapis te revizije nije sačuvan u repozitorijumu.
+
+**Korišćenje AI-ja u ovoj fazi:** Codex je na Isidorin zahtjev implementirao funkciju i promjenu strategije, dodao ciljane testove, pripremio lokalno okruženje, izvršio testove, eval i CLI provjere, provjerio otiske, sačuvao dokaze, dopunio ovaj izvještaj i napravio Git commit implementacije. Kod i rezultati nisu predstavljeni kao ručno napisani ili nezavisno pregledani od strane druge osobe. Završna dokumentacija i dokazi čuvaju se u zasebnom commitu sa opisom rezultata.
 
 **Demonstrator:** Dogovara se.
