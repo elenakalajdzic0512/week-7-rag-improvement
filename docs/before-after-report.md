@@ -66,7 +66,7 @@ Fajl `eval/eval_set.json` je zatim vraćen na **tačne bajtove postojećeg Git b
 
 `afe46db1e75a0b85bb5c9a93b6763e3b96e5cd7b289e12da6d2671e4d8650064`.
 
-Izvorni `results/before.json` nije prepisivan ni ručno uređivan. SHA-256 cijelog tog fajla je i prije i poslije rada `c5eb4fc3cb96586c2de9ca812e6b8d3270972b1d38d04f01698b712ddf341c2a`.
+Predati `results/before.json` (Git fajl sa LF završecima redova) ima SHA-256 `41138967ae31b2c1d22fbdccd7bff326c8563620bfd8aaa61be12092459d29d0`. Lokalna Windows kopija istog JSON sadržaja sa CRLF završecima redova imala je SHA-256 `c5eb4fc3cb96586c2de9ca812e6b8d3270972b1d38d04f01698b712ddf341c2a`. Razlika u završecima redova mijenja bajtovski otisak, dok je sadržaj početnog rezultata očuvan; predati fajl nije prepisivan ni ručno uređivan.
 
 Komande iz korijena projekta, obje sa statusom 0:
 
@@ -174,7 +174,7 @@ Hipoteza M1 potvrđena je za ciljana pitanja E04 i E09 na ovom fiksnom skupu: ci
 
 Treći dodatni prolaz, E06, treba tumačiti oprezno: promjena rangiranja donijela je važeći izvor, ali nije uklonila kontradiktoran zastarjeli izvor. M1 je poboljšao dostupnost cjelovitih činjenica, dok sinonimi, odbijanje nepodržanih pitanja i dosljedno korišćenje važećih verzija ostaju ograničenja potvrđena završnim dokazima.
 
-Dokazi su sačuvani u izvornom `after.json`, kompletnom poređenju, CLI transkriptima i zapisu testova; kod i testovi imaju zaseban commit `5481a9e`. Za uključivanje ignorisanog rezultata u dokumentacijski commit koristi se isključivo `git add -f -- results/after.json`, bez dodavanja ostalih ignorisanih fajlova. Nijedan commit se ne šalje na udaljeni repozitorijum u okviru ovog rada.
+Dokazi su sačuvani u izvornom `after.json`, kompletnom poređenju, CLI transkriptima i zapisu testova; kod i testovi imaju zaseban commit `5481a9e`. Za uključivanje ignorisanog rezultata u dokumentacijski commit koristi se isključivo `git add -f -- results/after.json`, bez dodavanja ostalih ignorisanih fajlova. Završni rad je objavljen na udaljenom `main`; pregledani vrh je `c229233`.
 
 ## Najveća ograničenja i prijedlog zasnovan na literaturi
 
