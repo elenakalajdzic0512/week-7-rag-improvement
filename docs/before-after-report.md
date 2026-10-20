@@ -176,6 +176,43 @@ Treći dodatni prolaz, E06, treba tumačiti oprezno: promjena rangiranja donijel
 
 Dokazi su sačuvani u izvornom `after.json`, kompletnom poređenju, CLI transkriptima i zapisu testova; kod i testovi imaju zaseban commit `5481a9e`. Za uključivanje ignorisanog rezultata u dokumentacijski commit koristi se isključivo `git add -f -- results/after.json`, bez dodavanja ostalih ignorisanih fajlova. Nijedan commit se ne šalje na udaljeni repozitorijum u okviru ovog rada.
 
+## Najveća ograničenja i prijedlog zasnovan na literaturi
+
+Ovaj odjeljak dodat je 20. oktobra 2026. na Isidorin zahtjev, poslije završenog M1 mjerenja. **Prijedlog nije implementiran niti evaluiran.** Jedini izmjereni rezultati ostaju 6/12 prije M1 i 9/12 poslije M1. Novi ugovor za budući rad je u [docs/spec.md](spec.md); postojeća [M1 specifikacija](change-spec.md) ostaje neizmijenjena.
+
+### Prioriteti prema dokazima iz ovog projekta
+
+| Prioritet / problem | Dokaz prije → poslije M1 | Posljedica i predloženi odgovor |
+| --- | --- | --- |
+| 1. Važeći izvor i kontradikcija | E06: prije samo 2024/2 dana; poslije i 2026/3 dana i 2024/2 dana. Eval sada daje prolaz. | Za pitanja o važećim pravilima filtrirati `status=current` prije rangiranja i posebno mjeriti zastarjele citate i kontradikcije. Ovo je projektna odluka o autoritetu izvora; embedding model sam ne određuje koje pravilo važi. |
+| 2. Nepodržana pitanja i slabi dokazi | E10/E11 padaju u oba mjerenja; tačnost odluke ostaje 10/12. Poslije M1 najbolji skorovi su 0.0769 i 0.2222. | Uvesti selekciju citata i kalibrisano odbijanje; terminološka sličnost nije dokaz da tekst odgovara na pitanje. Posebno provjeriti negativne primjere bliske temi, npr. roditeljsko naspram godišnjeg odsustva. |
+| 3. Leksičko poklapanje bez semantike | E05 i dalje ne pronalazi `hb-01` za „notebook computer”. | Dodati semantički retrieval i provjeriti parafraze koje nisu korišćene za podešavanje. Ne unositi ručno pravilo za jedan poznati eval upit. |
+| 4. Gubitak konteksta i osjetljivost na veličinu | M1 popravlja E04/E09; postoji dozvoljeni chunk od 163 znaka. Skor u `lexical_score` je broj poklopljenih tokena podijeljen dužinom chunka, pa promjena dužine mijenja rang i prag prihvatanja. | Zadržati cijele rečenice i probati kontekstualne chunk embeddinge. Ne tvrditi da M1 ima dokazan problem sa zamjenicama: to je rizik koji treba posebno testirati. |
+| 5. Svi pronađeni rezultati postaju citati | E01/E02/E08 ostaju na `CitPrec=0.50`; E06 prikazuje i kontradiktoran rezultat. | Razdvojiti veći skup kandidata od najviše dva konačna, provjerena citata. Samo povećavanje `TOP_K` može povećati šum. |
+| 6. Nedovoljno stroga evaluacija | Samo 12 poznatih pitanja; E06 prolazi uz kontradikciju; E09 provjerava rok, ali ne zahtijeva i mjesto podnošenja zahtjeva. | Sačuvati stare metrike radi poređenja i dodati odvojene provjere svih traženih činjenica, autoriteta izvora, odbijanja i potpunosti citata na novim pitanjima. |
+
+`lexical_score` nije BM25: ne koristi IDF, već ponovljena poklapanja u tekstu dijeli brojem tokena chunka. Zbog toga jedan zajednički čest izraz može dati dovoljno visok skor. Kraći chunkovi nisu automatski bolji. Postojeći sistem prikazuje izvučeni tekst, bez generativnog LLM-a; glavna greška je pogrešan izbor i prihvatanje dokaza, a ne izmišljanje novih činjenica.
+
+### Šta literatura podržava, a šta je naš prijedlog
+
+| Rad / primarni izvor | Nalaz ili metoda relevantna za ovaj rad | Primjena i ograničenje |
+| --- | --- | --- |
+| Günther et al., *Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models*, arXiv:2409.04701, v3 (2025; prvi preprint 2024). [Rad](https://arxiv.org/html/2409.04701v3), [kod autora](https://github.com/jina-ai/late-chunking). | Kontekstualizuje tokene dokumenta prije poolinga po granicama chunkova. | Glavni eksperiment za očuvanje konteksta uz kratke citate. Zadržati M1 granice i porediti nezavisno i kontekstualno enkodiranje istim modelom. Nije samo promjena regexa i zahtijeva embedding model. |
+| Karpukhin et al., *Dense Passage Retrieval for Open-Domain Question Answering*, EMNLP 2020. [Rad](https://aclanthology.org/2020.emnlp-main.550/). | Pokazuje retrieval zasnovan na gustim reprezentacijama pitanja i pasaža. | Motivacija za semantičku granu koja može pomoći E05. Ne treniramo DPR na 12 pitanja niti prenosimo procente iz njihovih eksperimenata na ovaj korpus. |
+| Cormack, Clarke i Büttcher, *Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods*, SIGIR 2009. [Rad autora](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf). | Spaja liste prema recipročnim rangovima, bez poređenja različitih skala skorova. | Spojiti postojeći leksički retrieval i novu dense granu. RRF je samo rangiranje; njegov pozitivan skor nije dokaz odgovorivosti. |
+| Nogueira i Cho, *Passage Re-ranking with BERT*, arXiv:1901.04085 (2019, preprint). [Rad](https://arxiv.org/abs/1901.04085). | Model zajednički obrađuje pitanje i pasaž radi ponovnog rangiranja. | Ispitati cross-encoder za uklanjanje tematski sličnih, ali nerelevantnih citata. Relevance skor nije logička provjera tvrdnje. |
+| Kamath, Jia i Liang, *Selective Question Answering under Domain Shift*, ACL 2020. [Rad](https://aclanthology.org/2020.acl-main.503/). | Istražuje odluku o odbijanju i kalibraciju uz pitanja izvan domena. | Prag selekcije podesiti na posebnom razvojnom skupu sa podržanim i nepodržanim pitanjima. Naš jednostavni prag nad rerankerom je prilagođavanje ideje, ne reprodukcija njihovog treniranog kalibratora. |
+| Gao et al., *Enabling Large Language Models to Generate Text with Citations* (ALCE), EMNLP 2023. [Rad](https://aclanthology.org/2023.emnlp-main.398/). | Razdvaja tačnost odgovora i kvalitet citiranja. | Dodati procjenu pokrivenosti činjenica i relevantnosti citata. Predložene lokalne provjere nisu zvanični ALCE skorovi. |
+| Es et al., *RAGAs: Automated Evaluation of Retrieval Augmented Generation*, EACL 2024, demonstracijski rad. [Rad](https://aclanthology.org/2024.eacl-demo.16/). | Evaluira različite komponente kvaliteta RAG-a. | Odvojeno izvještavati retrieval, podržanost odgovora i relevantnost. Pošto naš sistem kopira tekst, sama vjernost izvoru može biti visoka i kada je izvor zastario ili ne odgovara pitanju. RAGAs nije zamjena za ljudsku provjeru autoriteta. |
+
+Preporuka je **fazni eksperiment: provjera važećeg izvora → leksički i semantički kandidati → late chunking → reranking → kalibrisana selekcija citata i odbijanje**. To je naša sinteza navedenih metoda. Svaka faza ima zasebno mjerenje u [novoj specifikaciji](spec.md), da se poboljšanje od boljeg chunk embeddinga ne pomiješa sa učinkom filtera ili novog praga.
+
+Za prvi embedding eksperiment predložen je lokalni `jinaai/jina-embeddings-v2-small-en`, čija [kartica autora](https://huggingface.co/jinaai/jina-embeddings-v2-small-en) opisuje engleski model sa mean poolingom i kontekstom do 8192 tokena. Za reranking je kandidat `cross-encoder/ms-marco-MiniLM-L6-v2`, prema [kartici izdavača](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2). Njihove tačne revizije i verzije biblioteka moraju se zaključati pri implementaciji; sada nisu preuzeti niti pokrenuti. Za 26 chunkova nije potrebna vektorska baza: dovoljna je iscrpna pretraga u memoriji.
+
+Očekivani pravac koristi je bolji recall za parafraze, manje nevažnih citata i bolje odbijanje nepodržanih pitanja. **To su hipoteze, bez novih izmjerenih skorova.** Late chunking može dodati malo koristi na ovako kratkim dokumentima; zato je obični dense retrieval obavezan kontrolni eksperiment. Ne rješava sam zastarjele politike, a dodatni modeli povećavaju vrijeme i memoriju. Ako skuplja varijanta ne poboljša kvalitet, prednost ima jednostavnija varijanta.
+
+U ovoj dopuni izmijenjen je samo ovaj izvještaj i dodat `docs/spec.md`. Izvršni kod, zavisnosti, početni i završni rezultati i originalni eval skup nisu mijenjani. Literatura je provjerena putem primarnih izvora; prijedlog i specifikaciju pripremio je Codex na Isidorin zahtjev. Ne predstavlja dodatni ljudski ili partnerski pregled.
+
 ## Pregled drugog para
 
 Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. Elenin odgovor još nije dostavljen u ovom razgovoru, pa komentar i odgovor na komentar nisu izmišljeni. Ovaj interni pregled ne potvrđuje da je obavljen i traženi pregled drugog para.
