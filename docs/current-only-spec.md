@@ -37,7 +37,7 @@ Postojeći `searchable_chunks` trenutno podiže `NotImplementedError` za `CURREN
 
 ## Mjerenje i dokazi poslije implementacije
 
-**Kontrola je stanje poslije M1**, sačuvano u `results/after.json` (9/12 prolaza); ovo nije novo početno mjerenje i fajl se ne regeneriše. Novi rezultat ide u `results/current-only.json`, poređenje u `results/current-only-vs-m1.txt`, puni zapis CLI provjera u `docs/current-only-cli-checks.txt`, a puni zapis završnog pokretanja testova u `docs/current-only-test-results.txt`. Rezultati i zaključak se tek naknadno dokumentuju u `docs/current-only-report.md`. Nijedan od tih novih izlaznih fajlova ne smije postojati prije odgovarajućeg upisa; ako postoji, zaustaviti postupak i sačuvati ga bez prepisivanja.
+**Kontrola je stanje poslije M1**, sačuvano u `results/after.json` (9/12 prolaza); ovo nije novo početno mjerenje i fajl se ne regeneriše. Novi rezultat ide u `results/current-only.json`, poređenje u `results/current-only-vs-m1.txt`, puni zapis CLI provjera u `docs/current-only-cli-checks.txt`, a puni zapis završnog pokretanja testova u `docs/current-only-test-results.txt`. Rezultati i zaključak se tek naknadno dokumentuju u zasebnom odjeljku postojećeg [zajedničkog izvještaja](before-after-report.md). Nijedan od tih novih izlaznih fajlova ne smije postojati prije odgovarajućeg upisa; ako postoji, zaustaviti postupak i sačuvati ga bez prepisivanja.
 
 Komande iz korijena projekta, **tek poslije predaje minimuma i implementacije**, uz aktivirano projektno Python 3.12 okruženje:
 
