@@ -1,6 +1,6 @@
 # Week 7 — zajednički izvještaj prije/poslije
 
-Početna analiza i specifikacija su završene. Implementacija M1 i završno mjerenje slijede.
+M1 je implementiran i provjeren 20. oktobra 2026. Svi testovi prolaze **30/30**, a fiksni eval je poboljšan sa **6/12 na 9/12**. E04 i E09 sada citiraju cijelu činjenicu o roku zamjene laptopa. Nema regresija prolaz → pad, ali E06 uprkos prolazu sadrži i zastarjelo pravilo. Pregled je poslat Eleni prema izjavi Isidore; povratni komentar i demonstrator još nisu potvrđeni.
 
 ## Cilj i početno stanje
 
@@ -10,12 +10,12 @@ Okruženje: lokalni `.venv` s Pythonom **3.12.14** i `pytest` **8.3.3**, sa zavi
 
 ## Početni rezultati i propusti
 
-| Metrika | Prije |
-| --- | ---: |
-| Prošla pitanja | 6/12 |
-| Tačnost odluke odgovor/odbijanje (`behaviour_accuracy`) | 0.8333 |
-| Pogodak očekivanog dokumenta kod podržanih pitanja (`retrieval_hit_rate`) | 0.7778 |
-| Srednja preciznost citata među datim odgovorima | 0.4545 |
+| Metrika | Prije | Poslije | Promjena |
+| --- | ---: | ---: | ---: |
+| Prošla pitanja | 6/12 (50%) | 9/12 (75%) | +3 pitanja; +25 procentnih poena |
+| Tačnost odluke odgovor/odbijanje (`behaviour_accuracy`) | 0.8333 | 0.8333 | 0.0000 |
+| Pogodak očekivanog dokumenta kod podržanih pitanja (`retrieval_hit_rate`) | 0.7778 (7/9) | 0.8889 (8/9) | +0.1111 |
+| Srednja preciznost citata među datim odgovorima | 0.4545 | 0.5455 | +0.0910 |
 
 **E04** i **E09** traže rok zamjene laptopa. Oba citiraju očekivani `hb-01`, ali izabrani chunkovi ne sadrže „5 business days”; oba padaju uprkos `citation_precision=1.0`. **E06** citira pravilo iz 2024. sa „2 days per week”, iako važeći izvor iz 2026. kaže „3 days per week”. Tabela svih pitanja, citati i skorovi su u [početnim nalazima](baseline-findings.md) i [sačuvanim CLI provjerama](baseline-cli-checks.txt).
 
@@ -27,30 +27,167 @@ Izabrana je jedna intervencija, **M1 — sentence-aware chunking**. [Specifikaci
 
 ## Implementacija
 
-**Čeka implementaciju.** Koleginica treba da implementira M1 u dozvoljenom obimu i doda ciljane testove prema [uputstvu za predaju](handoff.md). Ovdje zatim zabilježiti stvarni diff ili commit i rezultat svih testova.
+Implementacija i testovi su u commitu **`5481a9e` — `Implement M1 sentence-aware chunking`**. Pregled tačne izmjene: `git show 5481a9e -- src/chunking.py src/config.py tests/test_sentence_chunking.py`.
+
+| Fajl | Izmjena / dodatak / uklanjanje |
+| --- | --- |
+| `src/chunking.py` | Dodat standardni modul `re`. U postojećoj funkciji `split_text_by_sentences` uklonjen je samo privremeni `NotImplementedError` i zamijenjen validacijom limita, normalizacijom razmaka i pohlepnim pakovanjem cijelih rečenica. |
+| `src/config.py` | Jedina promijenjena postavka je `CHUNK_STRATEGY`: `chars` → `sentences`. |
+| `tests/test_sentence_chunking.py` | Dodat novi fajl sa 12 test slučajeva: pohlepno pakovanje i granična dužina sa separatorom; preduga rečenica kao zaseban chunk; prazan/bijeli tekst; nulti i negativni limit, uključujući prazan ulaz; normalizacija i očuvanje sadržaja; `.`, `?`, `!` i završni tekst bez interpunkcije; odsustvo granice bez razmaka; nezavisnost od overlap postavke; redoslijed, ID-jevi i metapodaci kroz `build_chunks`. |
+| `docs/before-after-report.md` | Dopunjene implementacija, okruženje, mjerenje, svih 12 pitanja, ručne provjere, regresije, ograničenja, zaključak, doprinos i status pregleda. Dodati popis fajlova i dokazi ponovljivosti. |
+| `results/after.json` | Dodat izvorni završni rezultat eval runnera, bez ručnog uređivanja, sa konfiguracijom, otiskom i svim pitanjima. |
+| `results/comparison.txt` | Dodat kompletan izlaz uspješnog poređenja prije/poslije. |
+| `docs/after-cli-checks.txt` | Dodati puni CLI transkripti za E04, E09, E06 i sva tri preostala pada: E05, E10 i E11; uključuju komande, odgovore, citate, skorove, verzije i statuse izvora. |
+| `docs/after-test-results.txt` | Dodat puni izlaz završnog pokretanja svih 30 testova. |
+
+Granica rečenice je razmak nakon `.`, `?` ili `!`, uz zadržavanje interpunkcije. Uzastopne rečenice se spajaju jednim razmakom dok ukupna dužina ne pređe 140 znakova. Preduga rečenica ostaje cjelovita i samostalna. Nema overlapa, preskakanja ni dupliranja. `build_chunks` i postojeća `chars` strategija nisu mijenjani. Broj chunkova nad korpusom promijenjen je sa **23 na 26**; `hb-01-chunk-1` ima **163 znaka**, što je dozvoljeno ugovorom za pojedinačnu predugu rečenicu. Provjereno je očuvanje cijelog normalizovanog sadržaja svih deset dokumenata.
+
+Nijedan postojeći test ni fajl nije uklonjen. Korpus, retrieval, formiranje odgovora, metrike, zavisnosti i ostala podešavanja nisu mijenjani. `CHUNK_SIZE=140` i `CHUNK_OVERLAP=30` ostaju zapisani; overlap se ne koristi u `sentences` grani. Specifikacija, handoff i početni nalazi ostavljeni su kao zapisi stanja prije implementacije.
+
+Završna provjera je rađena na Windowsu uz **Python 3.12.14** i **pytest 8.3.3**. Pošto su početno bili dostupni samo Python 3.13.3 i nijedan lokalni `.venv`, lokalno je pripremljen `uv 0.13.3` u ignorisanom `.tools`, preuzet Python 3.12.14 u privremeni direktorijum i napravljen `.venv`. `requirements.txt` i globalni paketi nisu mijenjani. Komande pripreme iz PowerShella:
+
+```powershell
+python -m pip install --target .tools uv
+$env:UV_PYTHON_INSTALL_DIR = Join-Path $env:TEMP 'week7-python'
+$env:UV_CACHE_DIR = Join-Path $env:TEMP 'week7-uv-cache'
+.\.tools\bin\uv.exe python install 3.12.14
+.\.tools\bin\uv.exe venv --python 3.12.14 .venv
+.\.tools\bin\uv.exe pip install --python .venv/Scripts/python.exe -r requirements.txt
+.venv/Scripts/python.exe -m pytest --basetemp=.tools/pytest-final
+```
+
+Prvo pokretanje bez `--basetemp` imalo je 29 prolaza i jednu grešku pri pripremi postojećeg testa zbog nedozvoljenog pristupa sistemskom pytest privremenom direktorijumu. Izbor lokalnog privremenog direktorijuma riješio je okruženje bez izmjene testova: **30/30 prolazi, status 0**. Od toga je 18 postojećih i 12 novih test slučajeva. Puni uspješni izlaz je u [zapisu testova](after-test-results.txt).
 
 ## Završno mjerenje i poređenje
 
-**Čeka završno mjerenje.** Ovdje unijeti komandu i `results/after.json`, otisak i postavke, metrike poslije, tabelu svih 12 pitanja, te izlaz `src.eval_compare` za iste eval podatke. Sačuvati izvorne rezultate i izlaz poređenja.
+Prije prvog evala potvrđeno je da `results/after.json` ne postoji. Prvi rezultat otkrio je razliku u bajtovima eval skupa: Windows checkout koristio je CRLF (`3c2a2b3a09169f42b31cd9dbe0403250561a72e745642baa598300ab47a6a883`), a početni rezultat i Git blob koriste LF. `src.eval_compare` je ispravno odbio takvo poređenje. Taj rezultat je sačuvan bez prepisivanja kao lokalni, ignorisani `results/after-crlf-checkout.json`; nije korišćen za završno poređenje niti dodat u commit.
+
+Fajl `eval/eval_set.json` je zatim vraćen na **tačne bajtove postojećeg Git bloba**, bez promjene pitanja, sadržaja ili logike metrika. `git diff -- eval/eval_set.json` nema sadržinske izmjene. Novi `after.json` je generisan runnerom. Oba važeća rezultata sada imaju identičan otisak:
+
+`afe46db1e75a0b85bb5c9a93b6763e3b96e5cd7b289e12da6d2671e4d8650064`.
+
+Izvorni `results/before.json` nije prepisivan ni ručno uređivan. SHA-256 cijelog tog fajla je i prije i poslije rada `c5eb4fc3cb96586c2de9ca812e6b8d3270972b1d38d04f01698b712ddf341c2a`.
+
+Komande iz korijena projekta, obje sa statusom 0:
+
+```powershell
+.venv/Scripts/python.exe -m src.eval_runner --out results/after.json
+.venv/Scripts/python.exe -m src.eval_compare results/before.json results/after.json
+```
+
+Puni stdout poređenja sačuvan je u [results/comparison.txt](../results/comparison.txt). [Završni JSON](../results/after.json) ima `created_at=2026-10-20T14:10:05+00:00` (16:10:05 po lokalnom vremenu Europe/Budapest). Zabilježena konfiguracija:
+
+```text
+CHUNK_STRATEGY=sentences
+CHUNK_SIZE=140
+CHUNK_OVERLAP=30
+TOP_K=2
+RETRIEVAL_MIN_SCORE=0.01
+STOPWORDS_ENABLED=False
+CURRENT_ONLY=False
+REFUSAL_THRESHOLD=0.02
+CITATION_MIN_SCORE=None
+```
+
+Tabela svih pitanja: `Hit`, `Fact` i `CitPrec` prikazuju prije → poslije. `—` znači da metrika nije primjenjiva. Očekivano i stvarno ponašanje odnose se na odluku odgovor/odbijanje.
+
+| ID | Pitanje | Očekivano | Stvarno prije → poslije | Hit | Fact | CitPrec | Prolaz prije → poslije |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| E01 | How many days of annual leave do employees get? | odgovor | odgovor → odgovor | da → da | da → da | 0.50 → 0.50 | da → da |
+| E02 | How often do passwords need to be changed? | odgovor | odgovor → odgovor | da → da | da → da | 0.50 → 0.50 | da → da |
+| E03 | What is the yearly training budget per employee? | odgovor | odgovor → odgovor | da → da | da → da | 0.50 → 1.00 | da → da |
+| E04 | How many business days does a laptop replacement take? | odgovor | odgovor → odgovor | da → da | ne → da | 1.00 → 1.00 | ne → da |
+| E05 | How long until I get a new notebook computer? | odgovor | odgovor → odgovor | ne → ne | ne → ne | 0.00 → 0.00 | ne → ne |
+| E06 | How many days per week can I work remotely? | odgovor | odgovor → odgovor | ne → da | ne → da | 0.00 → 0.50 | ne → da |
+| E07 | What are the IT support hours? | odgovor | odgovor → odgovor | da → da | da → da | 1.00 → 1.00 | da → da |
+| E08 | By when must travel receipts be submitted? | odgovor | odgovor → odgovor | da → da | da → da | 0.50 → 0.50 | da → da |
+| E09 | Where do I request a replacement laptop and how long does it take? | odgovor | odgovor → odgovor | da → da | ne → da | 1.00 → 1.00 | ne → da |
+| E10 | What is the current company stock price? | odbijanje | odgovor → odgovor | — | — | 0.00 → 0.00 | ne → ne |
+| E11 | What is the parental leave policy? | odbijanje | odgovor → odgovor | — | — | 0.00 → 0.00 | ne → ne |
+| E12 | Who won the 1958 football world cup? | odbijanje | odbijanje → odbijanje | — | — | — | da → da |
+
+Kompletan izlaz poređenja:
+
+```text
+Fixed (fail -> pass): E04, E06, E09
+Regressed (pass -> fail): none
+Unchanged: E01, E02, E03, E05, E07, E08, E10, E11, E12
+
+Summary:
+  passed: 6 -> 9 (+3)
+  total: 12 -> 12 (+0)
+  behaviour_accuracy: 0.8333 -> 0.8333 (+0.0)
+  retrieval_hit_rate: 0.7778 -> 0.8889 (+0.1111)
+  mean_citation_precision: 0.4545 -> 0.5455 (+0.091)
+
+Changed settings:
+  CHUNK_STRATEGY: 'chars' -> 'sentences'
+```
+
+`Unchanged` ovdje znači nepromijenjen status prolaza; tekst chunkova, skorovi i citati mogu biti drugačiji. E03 ima dodatno poboljšanje preciznosti citata iako je prolazio i prije. E01 mijenja sporedni citat iz `hb-02` u `hb-03`, E08 iz `hb-03` u `hb-05`, a E10 mijenja redoslijed dva nepovezana izvora. Isti ID chunka između strategija ne garantuje isti sadržaj.
 
 ## Ručna provjera
 
-**Čeka završno mjerenje.** Za pitanje čiji se ishod promijeni navesti CLI komandu s `--show-retrieved`, stvarni odgovor, citat, verziju i status izvora. Ako se nijedno pitanje ne promijeni, to izričito navesti.
+Puni odgovori i citati za šest pitanja sačuvani su u [docs/after-cli-checks.txt](after-cli-checks.txt). Sve CLI komande završile su statusom 0. Sistem i dalje prikazuje doslovni tekst citiranih chunkova uz prefiks, bez generisanja sažetog odgovora.
+
+**E04 — potvrđena ciljna promjena:**
+
+```powershell
+.venv/Scripts/python.exe -m src.cli --question "How many business days does a laptop replacement take?" --show-retrieved
+```
+
+Odgovor sadrži `[hb-01-chunk-1] After manager approval, a replacement laptop is set up by IT staff with your files, accounts, email and access rights, and handover can take up to 5 business days.` Drugi citat je `hb-01-chunk-0`, o mogućnosti zamjene izgubljenog, ukradenog ili pokvarenog laptopa. Oba izvora su *Equipment replacement*, verzija **2026**, status **current**. Skorovi su 0.2069 i 0.2000. I odgovor i citirani chunk sada sadrže **5 business days**; `Fact` i `Pass` prelaze iz `false` u `true`.
+
+**E09 — potvrđen potpuniji odgovor:**
+
+```powershell
+.venv/Scripts/python.exe -m src.cli --question "Where do I request a replacement laptop and how long does it take?" --show-retrieved
+```
+
+Odgovor prvo citira `hb-01-chunk-2`: `Report lost or stolen devices to security first. Request a replacement laptop in IT portal under Hardware.` Zatim citira cijelu rečenicu iz `hb-01-chunk-1` sa **5 business days**. Oba su verzija **2026**, **current**; skorovi su 0.2941 i 0.2414. Sada su pokriveni i mjesto podnošenja zahtjeva i rok.
+
+**E06 — metrika prolazi, odgovor ostaje kontradiktoran:**
+
+```powershell
+.venv/Scripts/python.exe -m src.cli --question "How many days per week can I work remotely?" --show-retrieved
+```
+
+Prvi citat je `hb-03-chunk-0`, verzija **2026**, **current**, skor 0.5833: `Remote work: employees can work remotely up to 3 days per week.` Drugi je `hb-02-chunk-0`, verzija **2024**, **superseded**, skor 0.4545: `Remote work: employees can work remotely up to 2 days per week. Remote days per week are agreed with your team lead.` Prisustvo važeće činjenice i `CitPrec=0.50` dovoljno je za prolaz, ali korisnik dobija oba suprotna pravila. Ovo nije potpuno riješen problem verzionisanja.
 
 ## Regresije i preostala ograničenja
 
-**Čeka završno mjerenje.** Navesti svaku regresiju i najmanje jedno preostalo ograničenje na osnovu after rezultata. Početni propusti se ne smiju unaprijed proglašavati preostalim poslije M1.
+**Regresije:** nema pitanja koje je prešlo iz prolaza u pad; nijedna od pojedinačnih evaluiranih metrika po pitanju nije pogoršana. Nema pada zbirnih metrika. To ne znači da je svaki prikazani odgovor sadržinski ispravan.
+
+- **E06:** ručno je potvrđeno istovremeno citiranje važećeg pravila od 3 dana i zastarjelog od 2 dana. Ovo ostaje stvarna kontradikcija iako eval sada označava prolaz. `CURRENT_ONLY=False` je ostao neizmijenjen.
+- **E05 i dalje pada:** za „notebook computer” odgovor citira onboarding i godišnji odmor, bez roka zamjene računara. `Hit=false`, `Fact=false`, `CitPrec=0.00`. M1 nije riješio sinonime.
+- **E10 i E11 i dalje padaju:** umjesto odbijanja daju sadržaj o MFA/parkingu, odnosno godišnjem odmoru. Najbolji skorovi su 0.0769 i 0.2222, iznad neizmijenjenog praga 0.02. Za E10 nije izmišljena cijena akcije; vraćen je nepovezan sadržaj. Za E11 nisu date informacije o roditeljskom odsustvu.
+- **Šum u citatima:** E01, E02 i E08 zadržavaju `CitPrec=0.50`; svaki ima jedan citat iz drugog dokumenta. E03 je poboljšan na 1.00.
+- **Granice rečenica:** pravilo nije jezički parser i može razdvojiti skraćenice iza kojih slijedi razmak. Pojedinačna rečenica može biti duža od limita, što je namjerno ponašanje ugovora, a ne greška.
+- **Ograničenje mjerenja:** samo 12 fiksnih pitanja korišćeno je i za dijagnostiku i za mjerenje. `Fact` traži doslovnu normalizovanu frazu u jednom citatu, a `Pass` može tolerisati nevažan ili kontradiktoran drugi citat. Rezultat 9/12 ne dokazuje generalizaciju niti pouzdanost svih odgovora.
+- **Ponovljivost na Windowsu:** raw-byte otisak eval skupa zavisi od završetaka redova; za poređenje moraju biti korišćeni izvorni LF bajtovi, što je ovdje provjereno.
+
+Nisu podešavane druge opcije da bi se uklonili preostali propusti; sačuvan je obim jedne intervencije.
 
 ## Zaključak
 
-**Čeka završno mjerenje.** Zaključak treba da uporedi dokaze prije i poslije, uključujući mogućnost da M1 ne potvrdi hipotezu.
+Hipoteza M1 potvrđena je za ciljana pitanja E04 i E09 na ovom fiksnom skupu: cijela rečenica sa „5 business days” sada ulazi u top 2 i odgovor je citira. Prolaznost raste sa **50% na 75%**, pogodak očekivanog dokumenta sa **7/9 na 8/9**, a srednja preciznost citata sa **0.4545 na 0.5455**. Tačnost odluke odgovor/odbijanje ostaje **10/12**. Nema zabilježenih regresija prolaza.
+
+Treći dodatni prolaz, E06, treba tumačiti oprezno: promjena rangiranja donijela je važeći izvor, ali nije uklonila kontradiktoran zastarjeli izvor. M1 je poboljšao dostupnost cjelovitih činjenica, dok sinonimi, odbijanje nepodržanih pitanja i dosljedno korišćenje važećih verzija ostaju ograničenja potvrđena završnim dokazima.
+
+Dokazi su sačuvani u izvornom `after.json`, kompletnom poređenju, CLI transkriptima i zapisu testova; kod i testovi imaju zaseban commit `5481a9e`. Za uključivanje ignorisanog rezultata u dokumentacijski commit koristi se isključivo `git add -f -- results/after.json`, bez dodavanja ostalih ignorisanih fajlova. Nijedan commit se ne šalje na udaljeni repozitorijum u okviru ovog rada.
 
 ## Pregled drugog para
 
-**Čeka komentar drugog para.** Ovdje zabilježiti stvarni komentar i odgovor na njega.
+Prema izjavi Isidore Popović, završna evaluacija poslata je Eleni na pregled. Elenin odgovor još nije dostavljen u ovom razgovoru, pa komentar i odgovor na komentar nisu izmišljeni. Ovaj interni pregled ne potvrđuje da je obavljen i traženi pregled drugog para.
+
+**Status pregleda drugog para:** čeka stvarni komentar. Ime para, komentar i postupanje po njemu treba dopisati kada budu dostupni.
 
 ## Doprinos članica i korišćenje AI-ja
 
-Elena je vodila početnu analizu, pregled rezultata i pripremu specifikacije uz AI asistente. Codex je u ovoj fazi izvršavao komande i pripremao kodnu bazu, rezultate i dokumentaciju pod njenim uputstvima. Implementacija M1 i završno mjerenje planirani su za koleginicu; njen rad još nije izvršen niti je njeno ime ovdje potvrđeno.
+**Elena:** evaluirala je početni kod bez izmjene njegove implementacije, analizirala propuste, odabrala M1 i pripremila specifikaciju promjene. Početna dokumentacija bilježi korišćenje AI asistenata u toj fazi.
+
+**Isidora Popović:** prema svojoj izjavi pročitala je specifikaciju i proslijedila je Codexu za implementaciju; nakon toga ponovila je evaluaciju sistema i poslala rezultate Eleni na pregled.
+
+**Korišćenje AI-ja u ovoj fazi:** Codex je na Isidorin zahtjev implementirao funkciju i promjenu strategije, dodao ciljane testove, pripremio lokalno okruženje, izvršio testove, eval i CLI provjere, provjerio otiske, sačuvao dokaze, dopunio ovaj izvještaj i napravio Git commit implementacije. Kod i rezultati nisu predstavljeni kao ručno napisani ili nezavisno pregledani od strane druge osobe; povratni pregled još nije potvrđen. Završna dokumentacija i dokazi čuvaju se u zasebnom commitu sa opisom rezultata.
 
 **Demonstrator:** Dogovara se.

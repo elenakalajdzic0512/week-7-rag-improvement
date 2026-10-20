@@ -1,0 +1,130 @@
+
+Command: .venv/Scripts/python.exe -m src.cli --question "How many business days does a laptop replacement take?" --show-retrieved
+Exit status: 0
+
+Question:
+How many business days does a laptop replacement take?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-01-chunk-1] After manager approval, a replacement laptop is set up by IT staff with your files, accounts, email and access rights, and handover can take up to 5 business days.
+[hb-01-chunk-0] Laptop replacement: broken, lost or stolen laptops can be replaced.
+
+Refused: False
+Citations:
+  hb-01-chunk-1: Equipment replacement (version 2026, current)
+  hb-01-chunk-0: Equipment replacement (version 2026, current)
+
+Retrieved:
+  0.2069  hb-01-chunk-1: After manager approval, a replacement laptop is set up by IT staff with your files, accounts, email and access rights, and handover can take up to 5 business days.
+  0.2000  hb-01-chunk-0: Laptop replacement: broken, lost or stolen laptops can be replaced.
+
+================================================================================
+
+Command: .venv/Scripts/python.exe -m src.cli --question "Where do I request a replacement laptop and how long does it take?" --show-retrieved
+Exit status: 0
+
+Question:
+Where do I request a replacement laptop and how long does it take?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-01-chunk-2] Report lost or stolen devices to security first. Request a replacement laptop in IT portal under Hardware.
+[hb-01-chunk-1] After manager approval, a replacement laptop is set up by IT staff with your files, accounts, email and access rights, and handover can take up to 5 business days.
+
+Refused: False
+Citations:
+  hb-01-chunk-2: Equipment replacement (version 2026, current)
+  hb-01-chunk-1: Equipment replacement (version 2026, current)
+
+Retrieved:
+  0.2941  hb-01-chunk-2: Report lost or stolen devices to security first. Request a replacement laptop in IT portal under Hardware.
+  0.2414  hb-01-chunk-1: After manager approval, a replacement laptop is set up by IT staff with your files, accounts, email and access rights, and handover can take up to 5 business days.
+
+================================================================================
+
+Command: .venv/Scripts/python.exe -m src.cli --question "How many days per week can I work remotely?" --show-retrieved
+Exit status: 0
+
+Question:
+How many days per week can I work remotely?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-03-chunk-0] Remote work: employees can work remotely up to 3 days per week.
+[hb-02-chunk-0] Remote work: employees can work remotely up to 2 days per week. Remote days per week are agreed with your team lead.
+
+Refused: False
+Citations:
+  hb-03-chunk-0: Remote work policy (version 2026, current)
+  hb-02-chunk-0: Remote work policy (version 2024, superseded)
+
+Retrieved:
+  0.5833  hb-03-chunk-0: Remote work: employees can work remotely up to 3 days per week.
+  0.4545  hb-02-chunk-0: Remote work: employees can work remotely up to 2 days per week. Remote days per week are agreed with your team lead.
+
+================================================================================
+
+Command: .venv/Scripts/python.exe -m src.cli --question "How long until I get a new notebook computer?" --show-retrieved
+Exit status: 0
+
+Question:
+How long until I get a new notebook computer?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-06-chunk-0] New colleagues follow a two-week onboarding plan.
+[hb-07-chunk-1] Under this policy, unused leave can be carried over until 31 March. Sick leave follows a separate policy.
+
+Refused: False
+Citations:
+  hb-06-chunk-0: Onboarding (version 2026, current)
+  hb-07-chunk-1: Annual leave (version 2026, current)
+
+Retrieved:
+  0.2500  hb-06-chunk-0: New colleagues follow a two-week onboarding plan.
+  0.1111  hb-07-chunk-1: Under this policy, unused leave can be carried over until 31 March. Sick leave follows a separate policy.
+
+================================================================================
+
+Command: .venv/Scripts/python.exe -m src.cli --question "What is the current company stock price?" --show-retrieved
+Exit status: 0
+
+Question:
+What is the current company stock price?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-05-chunk-1] Multi-factor authentication (MFA) is required for email, VPN and all internal tools.
+[hb-09-chunk-1] Parking is limited: spaces are shared and reserved through facilities app, first come, first served.
+
+Refused: False
+Citations:
+  hb-05-chunk-1: Passwords and access (version 2026, current)
+  hb-09-chunk-1: Office access and parking (version 2026, current)
+
+Retrieved:
+  0.0769  hb-05-chunk-1: Multi-factor authentication (MFA) is required for email, VPN and all internal tools.
+  0.0667  hb-09-chunk-1: Parking is limited: spaces are shared and reserved through facilities app, first come, first served.
+
+================================================================================
+
+Command: .venv/Scripts/python.exe -m src.cli --question "What is the parental leave policy?" --show-retrieved
+Exit status: 0
+
+Question:
+What is the parental leave policy?
+
+Answer:
+Grounded response based on retrieved context:
+[hb-07-chunk-1] Under this policy, unused leave can be carried over until 31 March. Sick leave follows a separate policy.
+[hb-07-chunk-0] Annual leave policy: employees get 22 days of annual leave per calendar year. Leave requests must be made two weeks in advance in HR portal.
+
+Refused: False
+Citations:
+  hb-07-chunk-1: Annual leave (version 2026, current)
+  hb-07-chunk-0: Annual leave (version 2026, current)
+
+Retrieved:
+  0.2222  hb-07-chunk-1: Under this policy, unused leave can be carried over until 31 March. Sick leave follows a separate policy.
+  0.1600  hb-07-chunk-0: Annual leave policy: employees get 22 days of annual leave per calendar year. Leave requests must be made two weeks in advance in HR portal.
