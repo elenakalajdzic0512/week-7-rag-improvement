@@ -1,6 +1,6 @@
 # Week 7 — početno stanje RAG sistema
 
-Ovo je dokumentacija početnog stanja, ne konačni izvještaj prema tutorovom šablonu. Kod, korpus, konfiguracija, eval skup i metrike nisu mijenjani. CLI transkripti su u `docs/baseline-cli-checks.txt`, a izvorni rezultat mjerenja u `results/before.json`.
+Ovo je dokumentacija početnog stanja. Kod, korpus, konfiguracija, eval skup i metrike nisu mijenjani. CLI transkripti su u `docs/baseline-cli-checks.txt`, a izvorni rezultat mjerenja u `results/before.json`. [Zajednički izvještaj](before-after-report.md) prati zadatak prije i poslije promjene.
 
 ## Okruženje i ponovljive komande
 
@@ -17,7 +17,7 @@ Ovo je dokumentacija početnog stanja, ne konačni izvještaj prema tutorovom š
   .venv/bin/python -m pytest --version
   ```
 
-- Početni commit neizmijenjenog kostura na `main`: `c233b11f7a7faa8986236732de54be9453909d44` (`Record unmodified Week 7 RAG starter`). Samo eksplicitno odabrani projektni fajlovi ušli su u commit; nema remote adrese. Rezultati i ovaj dokument nisu commitovani.
+- Početni commit neizmijenjenog kostura na `main`: `c233b11f7a7faa8986236732de54be9453909d44` (`Record unmodified Week 7 RAG starter`). U taj commit ušli su samo eksplicitno odabrani projektni fajlovi; početni dokazi su dodati zasebnim dokumentacijskim commitom `8483353a21d90ff352f10720f3fcb4d16efbf7e9`.
 - Test: `.venv/bin/python -m pytest` — 18/18 prošlo, izlazni status 0.
 - Prije mjerenja `results/before.json` nije postojao. Komanda: `.venv/bin/python -m src.eval_runner --out results/before.json` — izlazni status 0. Za kasniji završni eval isti interpreter i poziv s `--out results/after.json`.
 - SHA-256 sirovih bajtova `eval/eval_set.json`: `afe46db1e75a0b85bb5c9a93b6763e3b96e5cd7b289e12da6d2671e4d8650064`; poklapa se s ranije utvrđenim otiskom.
@@ -84,16 +84,15 @@ Svih šest neuspjelih pitanja je ručno provjereno CLI komandom s `--show-retrie
 
 Nema utvrđenog slučaja u kojem metrika označava **prolaz**, a tekst tvrdi zastarjelo suprotno pravilo. Ipak, E01–E03 i E08 prolaze s `CitPrec=0.50`: svaki odgovor sadrži i jedan citat iz drugog dokumenta. To je šum u citatima, ne dokaz kontradikcije. E06 je dokazano zastario odgovor i metrika ga ispravno označava kao neuspjeh.
 
-## Jedna moguća intervencija i ostale opcije
+## Izabrana intervencija i ostale opcije
 
-**Preporuka za zajednički izbor: M1, chunkovanje po rečenicama.** E04 i E09 dijele neposredni, ponovljeni uzrok: očekivana činjenica ostaje u `hb-01-chunk-1`, ali top 2 vraća dijelove bez cjelovitog roka. M1 bi držao rečenicu o roku u cjelini i izbjegao komade koji počinju usred riječi. To je hipoteza o učinku, ne garantovan prolaz; promjena dužina chunkova mijenja sve skorove i zahtijeva puni završni eval.
+**Izabrana intervencija: M1, chunkovanje po rečenicama.** E04 i E09 dijele neposredni, ponovljeni uzrok: očekivana činjenica ostaje u `hb-01-chunk-1`, ali top 2 vraća dijelove bez cjelovitog roka. M1 bi držao rečenicu o roku u cjelini i izbjegao komade koji počinju usred riječi. To je hipoteza o učinku, ne garantovan prolaz; promjena dužina chunkova mijenja sve skorove i zahtijeva puni završni eval.
 
 Opcije iz `docs/improvement-menu.md`: **M2** filtriranje oko 40 čestih engleskih riječi može smanjiti šum, ali ne rješava sinonim “notebook”/“laptop”; **M3** prag odbijanja može pomoći E10, ali za E11 bi prag morao preći 0.166667 i mogao bi odbiti podržano E02 (najbolji skor 0.130435); **M4** minimalni skor citata može ukloniti sporedne citate, ali ne dodaje nedostajući dokaz; **M5** filtriranje samo važećih dokumenata direktno cilja E06, uz mogući gubitak istorijskih odgovora; **M6** veći `TOP_K` mogao bi povećati recall, ali dodaje šum i za E09 bi trebalo doći bar do petog rezultata. M1, M2, M4 i M5 zahtijevaju implementaciju; M3 i M6 su promjene postavki.
 
 ## Otvorena pitanja i ograničenja
 
-- Konačni tutorov šablon izvještaja nije dostupan; ova bilješka ga ne zamjenjuje.
-- Treba zajednički izabrati tačno jednu intervenciju i tek tada napisati konačnu specifikaciju. Trenutna preporuka M1 ne uključuje implementaciju.
+- Nakon početne analize izabrana je M1 kao jedina intervencija; njen ugovor je u [specifikaciji](change-spec.md). Ova bilješka ostaje zapis početnih dokaza.
 - Fiksni eval skup ima 12 pitanja; njegovi rezultati ne dokazuju ponašanje izvan tih pitanja. Fakt metrika traži doslovnu frazu u jednom citiranom chunku, pa ne ocjenjuje svaki oblik semantički tačnog odgovora. Istovremeno, `Pass` može tolerisati jedan nevažan od dva citata (`CitPrec=0.50`).
 - Otisak potvrđuje neizmijenjene bajtove eval skupa, ali ne obuhvata korpus i kod. Za vjerodostojno poređenje treba sačuvati početni commit i dokumentovati kasniju jedinu promjenu.
 - Nema trajnog indeksa, aplikacijskog keša ni slučajnog izbora. Chunkovi se grade u memoriji, a jednak skor se razrješava po `chunk_id`.
