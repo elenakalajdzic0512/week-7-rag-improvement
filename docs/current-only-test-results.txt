@@ -1,0 +1,20 @@
+Command: .venv/bin/python -m pytest
+Interpreter: /Users/ladylazarus/Desktop/rag-week-7-weak-checkpoint/.venv/bin/python
+Python: Python 3.12.14
+Pytest: pytest 8.3.3
+============================= test session starts ==============================
+platform darwin -- Python 3.12.14, pytest-8.3.3, pluggy-1.7.0
+rootdir: /Users/ladylazarus/Desktop/rag-week-7-weak-checkpoint
+collected 36 items
+
+tests/test_chunking.py ...                                               [  8%]
+tests/test_current_only.py ......                                        [ 25%]
+tests/test_eval_compare.py ....                                          [ 36%]
+tests/test_eval_metrics.py ....                                          [ 47%]
+tests/test_eval_set.py ..                                                [ 52%]
+tests/test_rag.py ..                                                     [ 58%]
+tests/test_retrieval.py ...                                              [ 66%]
+tests/test_sentence_chunking.py ............                             [100%]
+
+============================== 36 passed in 0.08s ==============================
+Exit status: 0
